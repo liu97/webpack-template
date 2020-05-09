@@ -3,6 +3,7 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const apiMocker = require('mocker-api');
 
 const rootPath = path.join(__dirname, '..');
 const appPath = path.join(rootPath, 'app');
@@ -35,14 +36,15 @@ const config = {
     rules: [
       {
         test: /.html$/,
-        use: 'html-withimg-loader'
+        use: 'html-withimg-loader',
+        include: [appPath],
       },
       {
         test: /\.jsx?$/,
         use: {
           loader: 'babel-loader',
         },
-        exclude: /node_modules/
+        include: [appPath],
       },
       {
         test: /\.(le|c)ss$/,
@@ -62,7 +64,7 @@ const config = {
           },
           'less-loader'
         ],
-        exclude: /node_modules/
+        include: [appPath],
       },
       {
         test: /\.(png|jpg|gif|jpeg|webp|svg|eot|ttf|woff|woff2)$/,
@@ -77,7 +79,7 @@ const config = {
             }
           }
         ],
-        exclude: /node_modules/
+        include: [appPath],
       }
     ]
   },
@@ -121,7 +123,18 @@ const config = {
     stats: "errors-only", // 终端仅打印 error
     overlay: false, // 默认不启用
     clientLogLevel: "silent", // 日志等级
-    compress: true // 是否启用 gzip 压缩
+    compress: true, // 是否启用 gzip 压缩
+    proxy: { // 代理
+      '/api': {
+        target: 'http://localhost:4000',
+        // pathRewrite: {
+        //   '/api': ''
+        // }
+      }
+    },
+    before(app) { // 前端模拟数据
+      apiMocker(app, path.resolve(rootPath, 'mock/index.js'))
+    },
   }
 }
 
